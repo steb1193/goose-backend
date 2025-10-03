@@ -1,0 +1,34 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:18
+    container_name: goose-db
+    environment:
+      POSTGRES_USER: goose_user        # ← будет создан как суперюзер
+      POSTGRES_PASSWORD: goose_password
+      POSTGRES_DB: goose_db            # ← будет создана база
+    ports:
+      - "5433:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U goose_user -d goose_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: goose-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+
+volumes:
+  db_data:
+  redis_data:
